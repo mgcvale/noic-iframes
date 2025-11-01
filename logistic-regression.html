@@ -1,13 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Logistic Regression Widget</title>
 <style>
+  html, body {
+    margin:0;
+    padding:0;
+    height:510px; /* FIXED HEIGHT */
+    overflow:hidden; /* prevent scroll */
+  }
   .sigmoid-widget {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     max-width: 780px;
-    margin: 8px auto;
+    width: 100%;
+    height: 100%; /* fill body */
+    margin: 0 auto;
     background: #fff;
     border: 1px solid #e6e6e6;
     padding: 14px;
     border-radius: 10px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.03);
+    box-sizing: border-box;
   }
   .controls {
     display: grid;
@@ -16,18 +30,10 @@
     align-items: center;
     margin-bottom: 12px;
   }
-  .control {
-    display:flex;
-    flex-direction: column;
-    gap:6px;
-  }
+  .control { display:flex; flex-direction: column; gap:6px; }
   label { font-size: 0.85rem; color:#333; }
   input[type="range"] { width:100%; }
-  .row {
-    display:flex;
-    gap:10px;
-    align-items:center;
-  }
+  .row { display:flex; gap:10px; align-items:center; }
   .value {
     min-width:64px;
     text-align:center;
@@ -36,25 +42,12 @@
     border:1px solid #ddd;
     background:#fafafa;
   }
-
-  /* Responsive canvas wrapper */
-  .canvas-wrapper {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 2.4 / 1; /* roughly 760px / 320px ratio */
-    margin-top: 10px;
-  }
-
   canvas {
-    position: absolute;
-    top:0;
-    left:0;
     width:100%;
-    height:100%;
+    height:320px; /* fixed */
     border-radius:6px;
     background: linear-gradient(180deg,#ffffff,#fbfbfb);
   }
-
   .footer {
     margin-top:10px;
     font-size:0.85rem;
@@ -65,7 +58,8 @@
     flex-wrap:wrap;
   }
 </style>
-
+</head>
+<body>
 <div class="sigmoid-widget" id="sigmoid-widget">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <strong>Regressão Logística: \( f(x) = \frac{1}{1 + e^{-(a x + b)}} \)</strong>
@@ -89,9 +83,7 @@
     </div>
   </div>
 
-  <div class="canvas-wrapper">
-    <canvas id="sigmoid-canvas"></canvas>
-  </div>
+  <canvas id="sigmoid-canvas"></canvas>
 
   <div class="footer">
     <div class="mini" id="formula-params">a = 1, b = 0</div>
@@ -99,8 +91,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script>
 (function(){
   const canvas = document.getElementById('sigmoid-canvas');
@@ -242,4 +233,6 @@
   draw();
 })();
 </script>
+</body>
+</html>
 

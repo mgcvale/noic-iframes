@@ -1,4 +1,3 @@
-<!-- Sigmoid interactive graph: paste into a WordPress Custom HTML block -->
 <style>
   .sigmoid-widget {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
@@ -37,7 +36,25 @@
     border:1px solid #ddd;
     background:#fafafa;
   }
-  canvas { width: 100%; height: 320px; border-radius:6px; background: linear-gradient(180deg,#ffffff,#fbfbfb); }
+
+  /* Responsive canvas wrapper */
+  .canvas-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2.4 / 1; /* roughly 760px / 320px ratio */
+    margin-top: 10px;
+  }
+
+  canvas {
+    position: absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    border-radius:6px;
+    background: linear-gradient(180deg,#ffffff,#fbfbfb);
+  }
+
   .footer {
     margin-top:10px;
     font-size:0.85rem;
@@ -51,7 +68,7 @@
 
 <div class="sigmoid-widget" id="sigmoid-widget">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <strong>Regressão Logística: \( f(x) = \frac{1}{1 + e^{-(a x + b}} \)</strong>
+      <strong>Regressão Logística: \( f(x) = \frac{1}{1 + e^{-(a x + b)}} \)</strong>
   </div>
 
   <div class="controls">
@@ -72,14 +89,18 @@
     </div>
   </div>
 
-  <canvas id="sigmoid-canvas" width="760" height="320"></canvas>
+  <div class="canvas-wrapper">
+    <canvas id="sigmoid-canvas"></canvas>
+  </div>
 
   <div class="footer">
     <div class="mini" id="formula-params">a = 1, b = 0</div>
     <div class="mini">f(0) = <span id="f0">0.5</span></div>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+
 <script>
 (function(){
   const canvas = document.getElementById('sigmoid-canvas');
@@ -217,9 +238,6 @@
 
     ctx.restore();
   }
-
-  [xminIn, xmaxIn, pointsIn].forEach(el => el.addEventListener('input', draw));
-  [aValue, bValue, xminIn, xmaxIn, pointsIn].forEach(el => el.addEventListener('change', draw));
 
   draw();
 })();

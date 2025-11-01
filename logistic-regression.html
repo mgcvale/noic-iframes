@@ -1,0 +1,227 @@
+<!-- Sigmoid interactive graph: paste into a WordPress Custom HTML block -->
+<style>
+  .sigmoid-widget {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    max-width: 780px;
+    margin: 8px auto;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    padding: 14px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.03);
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .control {
+    display:flex;
+    flex-direction: column;
+    gap:6px;
+  }
+  label { font-size: 0.85rem; color:#333; }
+  input[type="range"] { width:100%; }
+  .row {
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .value {
+    min-width:64px;
+    text-align:center;
+    padding:6px 8px;
+    border-radius:6px;
+    border:1px solid #ddd;
+    background:#fafafa;
+  }
+  canvas { width: 100%; height: 320px; border-radius:6px; background: linear-gradient(180deg,#ffffff,#fbfbfb); }
+  .footer {
+    margin-top:10px;
+    font-size:0.85rem;
+    color:#555;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+</style>
+
+<div class="sigmoid-widget" id="sigmoid-widget">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <strong>Regressão Logística: \( f(x) = \frac{1}{1 + e^{-(a x + b}} \)</strong>
+  </div>
+
+  <div class="controls">
+    <div class="control">
+      <label for="a-range">a (coeficiente angular)</label>
+      <div class="row">
+        <input id="a-range" type="range" min="-10" max="10" step="0.01" value="1">
+        <input id="a-value" class="value" type="number" step="0.01" value="1">
+      </div>
+    </div>
+
+    <div class="control">
+      <label for="b-range">b (intercepto)</label>
+      <div class="row">
+        <input id="b-range" type="range" min="-10" max="10" step="0.01" value="0">
+        <input id="b-value" class="value" type="number" step="0.01" value="0">
+      </div>
+    </div>
+  </div>
+
+  <canvas id="sigmoid-canvas" width="760" height="320"></canvas>
+
+  <div class="footer">
+    <div class="mini" id="formula-params">a = 1, b = 0</div>
+    <div class="mini">f(0) = <span id="f0">0.5</span></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+<script>
+(function(){
+  const canvas = document.getElementById('sigmoid-canvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+
+  const aRange = document.getElementById('a-range');
+  const aValue = document.getElementById('a-value');
+  const bRange = document.getElementById('b-range');
+  const bValue = document.getElementById('b-value');
+
+  const paramsText = document.getElementById('formula-params');
+  const f0Text = document.getElementById('f0');
+
+  function link(range, number){
+    range.addEventListener('input', ()=>{ number.value = range.value; draw(); });
+    number.addEventListener('input', ()=>{ range.value = number.value; draw(); });
+  }
+  link(aRange, aValue);
+  link(bRange, bValue);
+
+  function resizeCanvas(){
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    draw();
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function sigmoid(x, a, b){
+    return 1 / (1 + Math.exp(-(a * x + b)));
+  }
+
+  function draw(){
+    const a = parseFloat(aRange.value) || 0;
+    const b = parseFloat(bRange.value) || 0;
+    const xmin = -8
+    const xmax = 8;
+    const points = 100
+
+    paramsText.textContent = `a = ${a.toFixed(2)}, b = ${b.toFixed(2)}`;
+    f0Text.textContent = sigmoid(0, a, b).toFixed(4);
+
+    const W = canvas.width / dpr;
+    const H = canvas.height / dpr;
+    ctx.clearRect(0,0,W,H);
+
+    const margin = {left:54, right:14, top:12, bottom:36};
+    const plotW = W - margin.left - margin.right;
+    const plotH = H - margin.top - margin.bottom;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,W,H);
+
+    ctx.save();
+    ctx.translate(margin.left, margin.top);
+
+    const xSteps = 8;
+    const ySteps = 5;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#eee';
+    for(let i=0;i<=xSteps;i++){
+      const x = (i/xSteps) * plotW;
+      ctx.beginPath();
+      ctx.moveTo(x,0); ctx.lineTo(x,plotH); ctx.stroke();
+    }
+    for(let j=0;j<=ySteps;j++){
+      const y = (j/ySteps) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(0,y); ctx.lineTo(plotW,y); ctx.stroke();
+    }
+
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#bbb';
+    const yMid = plotH * (1 - 0.5);
+    ctx.beginPath(); ctx.moveTo(0,yMid); ctx.lineTo(plotW,yMid); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,plotH); ctx.stroke();
+
+    ctx.fillStyle = '#333';
+    ctx.font = '12px system-ui, Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for(let i=0;i<=xSteps;i++){
+      const t = i/xSteps;
+      const x = t * plotW;
+      const xv = xmin + t*(xmax-xmin);
+      ctx.fillText(xv.toFixed(1), x, plotH + 6);
+    }
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for(let j=0;j<=ySteps;j++){
+      const t = j/ySteps;
+      const y = t * plotH;
+      const yv = 1 - t;
+      ctx.fillText(yv.toFixed(2), -8, y);
+    }
+
+    ctx.save();
+    ctx.translate(-42, plotH/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.textAlign = 'center';
+    ctx.fillText('f(x)', 0, 0);
+    ctx.restore();
+
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#0275d8';
+    ctx.beginPath();
+    for(let i=0;i<=points;i++){
+      const t = i/points;
+      const xv = xmin + t*(xmax-xmin);
+      const yv = sigmoid(xv, a, b);
+      const cx = t * plotW;
+      const cy = (1 - yv) * plotH;
+      if(i===0) ctx.moveTo(cx, cy);
+      else ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+
+    if(xmin <= 0 && xmax >= 0){
+      const t0 = (0 - xmin) / (xmax - xmin);
+      const x0 = t0 * plotW;
+      const y0 = sigmoid(0, a, b);
+      const cy0 = (1 - y0) * plotH;
+      ctx.fillStyle = '#d9534f';
+      ctx.beginPath();
+      ctx.arc(x0, cy0, 4.5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.font = '12px system-ui';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`x=0 → ${y0.toFixed(4)}`, x0 + 8, cy0 - 6);
+    }
+
+    ctx.restore();
+  }
+
+  [xminIn, xmaxIn, pointsIn].forEach(el => el.addEventListener('input', draw));
+  [aValue, bValue, xminIn, xmaxIn, pointsIn].forEach(el => el.addEventListener('change', draw));
+
+  draw();
+})();
+</script>
+
